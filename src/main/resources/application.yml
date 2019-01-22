@@ -1,6 +1,30 @@
 debug: true
 
+logging:
+  level:
+    sql: debug
+
 server:
   port: 8080
   servlet:
     context-path: /api/search
+
+spring:
+  h2:
+    console:
+      enabled: true
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: bs
+    password:
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        search:
+          default:
+            directory_provider: filesystem
+            indexBase: ./lucene/indexes

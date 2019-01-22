@@ -12,6 +12,5 @@ public class HibernateSearchApplicationTests {
 	@Test
 	public void contextLoads() {
 	}
-
 }
 

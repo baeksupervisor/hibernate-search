@@ -24,13 +24,19 @@ repositories {
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+	// implementation 'org.springframework.boot:spring-boot-starter-webflux'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
 	runtimeOnly 'org.springframework.boot:spring-boot-devtools'
 	runtimeOnly 'com.h2database:h2'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'io.projectreactor:reactor-test'
+	compileOnly('org.projectlombok:lombok')
+	compile('org.springframework.boot:spring-boot-starter-jdbc')
 
 	// https://mvnrepository.com/artifact/org.hibernate/hibernate-search-orm
 	compile group: 'org.hibernate', name: 'hibernate-search-orm', version: '5.11.0.Final'
+
+	// https://mvnrepository.com/artifact/com.rometools/rome
+	compile group: 'com.rometools', name: 'rome', version: '1.12.0'
 
 }
