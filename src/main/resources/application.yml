@@ -16,7 +16,7 @@ spring:
   datasource:
     url: jdbc:h2:mem:testdb
     driver-class-name: org.h2.Driver
-    username: bs
+    username: sa
     password:
   jpa:
     show-sql: true
