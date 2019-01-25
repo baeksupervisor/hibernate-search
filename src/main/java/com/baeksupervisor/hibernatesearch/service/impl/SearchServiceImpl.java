@@ -63,9 +63,16 @@ public class SearchServiceImpl implements SearchService {
         FullTextEntityManager fullTextEntityManager = Search.getFullTextEntityManager(entityManager);
         QueryBuilder qb = fullTextEntityManager.getSearchFactory().buildQueryBuilder().forEntity(Product.class).get();
 
+        /*
+        fuzzy queries : 키워드 유사 검색
+                        Levenshtein distance 알고리즘을 기반으로 한 검색
+                        withPrefixLength 로 무시되는 접두어의 길이를 세팅 (default=0 이지만, 0이 아닌 값을 사용하는 것이 좋음)
+                        withThreshold(Deprecated) -> withEditDistanceUpTo 로 검색되는 문자열이 얼마나 다른지에 대해 세팅 (default=2)
+         */
         Query luceneQuery = qb
                 .keyword()
                 .fuzzy()
+//                .withThreshold(.8f)
                 .withEditDistanceUpTo(1)
                 .withPrefixLength(0)
                 .onFields("name")
@@ -114,6 +121,11 @@ public class SearchServiceImpl implements SearchService {
         FullTextEntityManager fullTextEntityManager = Search.getFullTextEntityManager(entityManager);
         QueryBuilder qb = fullTextEntityManager.getSearchFactory().buildQueryBuilder().forEntity(Product.class).get();
 
+        /*
+        wildcard queries : 와일드카드 검색
+                           '*' or '?' 를 이용해서 와일드카드 검색을 수행.
+                           성능상에 이슈가 있을 수 있기 때문에 와일드카드 문자는 검색어 앞에서는 사용하지 않아야 한다.
+         */
         Query luceneQuery = qb
                 .keyword()
                 .wildcard()
@@ -139,6 +151,10 @@ public class SearchServiceImpl implements SearchService {
         FullTextEntityManager fullTextEntityManager = Search.getFullTextEntityManager(entityManager);
         QueryBuilder qb = fullTextEntityManager.getSearchFactory().buildQueryBuilder().forEntity(Product.class).get();
 
+        /*
+        phrase queries : 문장 검색
+                         widSlop 인수를 추가하여 문장에서 허용되는 다른 단어의 수를 세팅할 수 있다.
+         */
         Query luceneQuery = qb
                 .phrase()
                 .withSlop(1)
