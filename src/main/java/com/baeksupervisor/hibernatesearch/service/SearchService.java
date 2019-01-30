@@ -14,4 +14,8 @@ public interface SearchService {
     List<Product> fuzzySearchProduct(String searchTerm);
     List<Product> wildcardSearchProduct(String searchTerm);
     List<Product> phraseSearchProduct(String searchTerm);
+
+    List suggestion(String term);
+
+    List searchNews(String term);
 }

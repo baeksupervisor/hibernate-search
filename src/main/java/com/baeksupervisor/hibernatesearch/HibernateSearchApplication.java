@@ -1,7 +1,9 @@
 package com.baeksupervisor.hibernatesearch;
 
+import com.baeksupervisor.hibernatesearch.persistence.entity.Brand;
 import com.baeksupervisor.hibernatesearch.persistence.entity.News;
 import com.baeksupervisor.hibernatesearch.persistence.entity.Product;
+import com.baeksupervisor.hibernatesearch.persistence.repository.BrandRepository;
 import com.baeksupervisor.hibernatesearch.persistence.repository.NewsRepository;
 import com.baeksupervisor.hibernatesearch.persistence.repository.ProductRepository;
 import com.rometools.rome.feed.synd.SyndContentImpl;
@@ -10,6 +12,9 @@ import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
 import lombok.extern.slf4j.Slf4j;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -39,14 +44,18 @@ public class HibernateSearchApplication implements CommandLineRunner {
 	@Autowired
 	private ProductRepository productRepository;
 
+	@Autowired
+	private BrandRepository brandRepository;
+
 	public static void main(String[] args) {
 		SpringApplication.run(HibernateSearchApplication.class, args);
 	}
 
 	@Override
 	public void run(String... args) throws Exception {
-//		initNews();
+		initNews();
 		initProduct();
+		initBrand();
 	}
 
 	private void initProduct() {
@@ -57,9 +66,20 @@ public class HibernateSearchApplication implements CommandLineRunner {
 			Path path = Paths.get(resource.getURI());
 			List<String> content = Files.readAllLines(path);
 			List<Product> list = Files.readAllLines(path).stream().map(s -> new Product(s)).collect(Collectors.toList());
-			list.forEach(System.out::println);
-
 			productRepository.saveAll(list);
+		} catch (IOException e) {
+			log.error("{}", e.getMessage(), e);
+		}
+	}
+
+	private void initBrand() {
+		ClassPathResource resource = new ClassPathResource("brand_name.txt");
+
+		try {
+			Path path = Paths.get(resource.getURI());
+			List<String> content = Files.readAllLines(path);
+			List<Brand> list = Files.readAllLines(path).stream().map(s -> new Brand(s)).collect(Collectors.toList());
+			brandRepository.saveAll(list);
 		} catch (IOException e) {
 			log.error("{}", e.getMessage(), e);
 		}
@@ -80,18 +100,24 @@ public class HibernateSearchApplication implements CommandLineRunner {
 			SyndContentImpl content = (SyndContentImpl) entry.getDescription();
 			String descriptionValue = content.getValue();
 
+			Document document = Jsoup.parse(descriptionValue);
+			Elements elements = document.getElementsByTag("img");
+			String text = document.text();
+
 //            log.info("title={}", title);
 //            log.info("link={}", link);
 //            log.info("description={}", descriptionValue);
+//            log.info("elements={}", elements.attr("src"));
+//            log.info("text={}", text);
 
 			News news = new News();
 			news.setTitle(title);
 			news.setLink(link);
-			news.setDescription(descriptionValue);
+			news.setImage(elements.attr("src"));
+			news.setDescription(text);
 
 			newsList.add(news);
 		}
-
 
 		newsRepository.saveAll(newsList);
 	}

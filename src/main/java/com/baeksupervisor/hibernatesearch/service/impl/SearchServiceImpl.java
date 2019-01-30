@@ -1,11 +1,13 @@
 package com.baeksupervisor.hibernatesearch.service.impl;
 
+import com.baeksupervisor.hibernatesearch.persistence.entity.Brand;
 import com.baeksupervisor.hibernatesearch.persistence.entity.News;
 import com.baeksupervisor.hibernatesearch.persistence.entity.Product;
 import com.baeksupervisor.hibernatesearch.service.SearchService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.lucene.search.Query;
+import org.apache.lucene.search.*;
 import org.hibernate.search.jpa.FullTextEntityManager;
+import org.hibernate.search.jpa.FullTextQuery;
 import org.hibernate.search.jpa.Search;
 import org.hibernate.search.query.dsl.QueryBuilder;
 import org.springframework.stereotype.Service;
@@ -17,6 +19,7 @@ import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceContextType;
 import java.util.List;
+import java.util.StringTokenizer;
 
 @Slf4j
 @Service
@@ -34,6 +37,79 @@ public class SearchServiceImpl implements SearchService {
 
     @Transactional
     @Override
+    public List searchNews(String term) {
+        FullTextEntityManager fullTextEntityManager = Search.getFullTextEntityManager(entityManager);
+
+        QueryBuilder qb = fullTextEntityManager
+                .getSearchFactory()
+                .buildQueryBuilder()
+                .forEntity(News.class)
+                .get();
+
+        BooleanQuery.Builder builder = new BooleanQuery.Builder();
+        StringTokenizer st = new StringTokenizer(term, " ");
+
+        while (st.hasMoreTokens()) {
+            String token = st.nextToken();
+            builder.add(qb.keyword().wildcard().onFields("title1", "title2", "description1", "description2").matching("*" + token + "*").createQuery(), BooleanClause.Occur.MUST);
+        }
+
+        FullTextQuery fullTextQuery = fullTextEntityManager.createFullTextQuery(builder.build(), News.class);
+
+        return fullTextQuery.getResultList();
+    }
+
+    @Transactional
+    @Override
+    public List suggestion(String term) {
+        FullTextEntityManager fullTextEntityManager = Search.getFullTextEntityManager(entityManager);
+
+        QueryBuilder qb = fullTextEntityManager
+                .getSearchFactory()
+                .buildQueryBuilder()
+                .forEntity(Brand.class)
+                .get();
+
+//        Query luceneQuery = qb
+//                .phrase()
+//                .withSlop(0)
+////                .onField("name")
+//                .onField("nGramName")
+//                .andField("edgeNGramName")
+//                .boostedTo(0)
+//                .sentence(term.toLowerCase())
+//                .createQuery();
+
+        BooleanQuery.Builder builder = new BooleanQuery.Builder();
+        StringTokenizer st = new StringTokenizer(term, " ");
+
+        int i = 0;
+        while (st.hasMoreTokens()) {
+            String token = st.nextToken();
+            if (i ==0) {
+                builder.add(qb.keyword().wildcard().onFields("name1", "name2").matching(token + "*").createQuery(), BooleanClause.Occur.SHOULD);
+            } else {
+                builder.add(qb.keyword().wildcard().onFields("name1", "name2").matching("*" + token + "*").createQuery(), BooleanClause.Occur.MUST);
+            }
+            i++;
+//            builder.add(qb.keyword().wildcard().onFields("name", "edgeNGramName", "nGramName").matching("*" + token + "*").createQuery(), BooleanClause.Occur.MUST);
+        }
+
+        FullTextQuery fullTextQuery = fullTextEntityManager.createFullTextQuery(builder.build(), Brand.class);
+
+        // todo sorting
+//        Sort sort = qb.sort().byIndexOrder().createSort();
+//                SortField.FIELD_SCORE
+//                ,new SortField("name1", SortField.Type.STRING, false)
+//                ,new SortField("name2", SortField.Type.STRING, false)
+//        );
+//        fullTextQuery.setSort(sort);
+
+        return fullTextQuery.getResultList();
+    }
+
+    @Transactional
+    @Override
     public List<Product> simpleSearchProduct(String searchTerm) {
         FullTextEntityManager fullTextEntityManager = Search.getFullTextEntityManager(entityManager);
         QueryBuilder qb = fullTextEntityManager.getSearchFactory().buildQueryBuilder().forEntity(Product.class).get();
@@ -46,14 +122,7 @@ public class SearchServiceImpl implements SearchService {
 
         javax.persistence.Query jpaQuery = fullTextEntityManager.createFullTextQuery(luceneQuery, Product.class);
 
-        List<Product> list = null;
-        try {
-            list = jpaQuery.getResultList();
-        } catch (NoResultException nre) {
-            log.error("{}", nre);
-        }
-
-        return list;
+        return jpaQuery.getResultList();
     }
 
     @Transactional
@@ -81,14 +150,7 @@ public class SearchServiceImpl implements SearchService {
 
         javax.persistence.Query jpaQuery = fullTextEntityManager.createFullTextQuery(luceneQuery, Product.class);
 
-        List<Product> list = null;
-        try {
-            list = jpaQuery.getResultList();
-        } catch (NoResultException nre) {
-            log.error("{}", nre);
-        }
-
-        return list;
+        return jpaQuery.getResultList();
     }
 
     @Transactional
@@ -105,14 +167,7 @@ public class SearchServiceImpl implements SearchService {
 
         javax.persistence.Query jpaQuery = fullTextEntityManager.createFullTextQuery(luceneQuery, Product.class);
 
-        List<Product> list = null;
-        try {
-            list = jpaQuery.getResultList();
-        } catch (NoResultException nre) {
-            log.error("{}", nre);
-        }
-
-        return list;
+        return jpaQuery.getResultList();
     }
 
     @Transactional
@@ -135,14 +190,7 @@ public class SearchServiceImpl implements SearchService {
 
         javax.persistence.Query jpaQuery = fullTextEntityManager.createFullTextQuery(luceneQuery, Product.class);
 
-        List<Product> list = null;
-        try {
-            list = jpaQuery.getResultList();
-        } catch (NoResultException nre) {
-            log.error("{}", nre);
-        }
-
-        return list;
+        return jpaQuery.getResultList();
     }
 
     @Transactional
@@ -164,14 +212,7 @@ public class SearchServiceImpl implements SearchService {
 
         javax.persistence.Query jpaQuery = fullTextEntityManager.createFullTextQuery(luceneQuery, Product.class);
 
-        List<Product> list = null;
-        try {
-            list = jpaQuery.getResultList();
-        } catch (NoResultException nre) {
-            log.error("{}", nre);
-        }
-
-        return list;
+        return jpaQuery.getResultList();
     }
 
     @Transactional
@@ -191,18 +232,6 @@ public class SearchServiceImpl implements SearchService {
 
         javax.persistence.Query jpaQuery = fullTextEntityManager.createFullTextQuery(luceneQuery, News.class);
 
-        // execute search
-
-        List<News> list = null;
-        try {
-            list = jpaQuery.getResultList();
-        } catch (NoResultException nre) {
-            ;// do nothing
-
-        }
-
-        return list;
-
-
+        return jpaQuery.getResultList();
     }
 }

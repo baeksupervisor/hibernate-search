@@ -18,8 +18,12 @@ import java.util.List;
 @RequestMapping(value = "")
 public class SearchController {
 
-    @Autowired
     private SearchService searchService;
+
+    @Autowired
+    public SearchController(SearchService searchService) {
+        this.searchService = searchService;
+    }
 
     @GetMapping(value = "")
     public ResponseEntity search(@RequestParam(value = "q", required = true) String q) {
@@ -51,6 +55,32 @@ public class SearchController {
             case "phrase":
                 list = searchService.phraseSearchProduct(q);
                 break;
+        }
+
+        return ResponseEntity.ok(list);
+    }
+
+    @GetMapping("/news")
+    public ResponseEntity searchNews(@RequestParam(value = "q") String q) throws Exception {
+        log.debug("q={}", q);
+        q = q.trim();
+
+        List list = new ArrayList();
+        if (q.length() != 0) {
+            list = searchService.searchNews(q);
+        }
+
+        return ResponseEntity.ok(list);
+    }
+
+    @GetMapping("/suggestion")
+    public ResponseEntity getSuggestion(@RequestParam(value = "q") String q) throws Exception {
+        log.debug("q={}", q);
+        q = q.trim().toLowerCase();
+
+        List list = new ArrayList();
+        if (q.length() != 0) {
+            list = searchService.suggestion(q);
         }
 
         return ResponseEntity.ok(list);
